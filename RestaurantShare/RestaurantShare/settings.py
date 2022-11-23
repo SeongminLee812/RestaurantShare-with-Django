@@ -25,7 +25,22 @@ SECRET_KEY = 'django-insecure-5s3$6p&4d_pov0a)s7pkh6_r4ft&n!d_@xq82$6dre&in)#lc)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
+# 이메일, 비밀번호 가져오기 (settings.py에 이런 코드를 남겨도 되는 가는 의문)
+import json
+with open('/Users/iseongmin/workspaces/RestaurantShare-with-Django/RestaurantShare/sendEmail/email.json', 'r') as f:
+    json_data = json.load(f)
+email = json_data['email']
+password = json_data['password']
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = email
+EMAIL_HOST_PASSWORD = password
 
 
 # Application definition

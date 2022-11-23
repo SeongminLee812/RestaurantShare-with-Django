@@ -5,6 +5,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
 from shareRes.models import *
+from django.core.mail import send_mail, EmailMessage
+from django.template.loader import render_to_string
 
 
 # Create your views here.
@@ -14,22 +16,15 @@ def sendEmail(request):
 	inputTitle = request.POST['inputTitle']
 	inputContent = request.POST['inputContent']
 	print(checked_res_list, '/', inputReceiver, '/', inputTitle, '/', inputContent)
-	
-	mail_html = '<html><body>'
-	mail_html += '<h1> 맛집공유 </h1>'
-	mail_html += '<p>'+inputContent+ '<br>'
-	mail_html += '발신자님께서 공유하신 맛집은 다음과 같습니다.</p>'
-	
+	restaurants = list()
+
 	for checked_res_id in checked_res_list:
+		restaurants.append(Restaurant.objects.get(id=checked_res_id))
 		
-		restaurant = Restaurant.objects.get(id = checked_res_id)
-		mail_html += '<h2>' + restaurant.restaurant_name + '</h2>'
-		mail_html += '<h4>* 관련 링크</h4>' + '<p>'+restaurant.restaurant_link +'</p>'
-		mail_html += '<h4>* 상세 내용</h4>' + '<p>'+restaurant.restaurant_content +'</p>'
-		mail_html += '<h4>* 장소 키워드</h4>' + '<p>'+restaurant.restaurant_keyword +'</p>'
-		mail_html += '<br>'
-		mail_html += '</body></html>'
-	print(mail_html)
+	content = {'inputContent': inputContent, 'restaurants': restaurants}
+	
+	msg_html = render_to_string('sendEmail/email_format.html', content)
+	# sendEmail/email_format.html의 html 형식으로 content를 변환할 것임
 	
 	# json 파일 읽어서 아이디 비밀번호 가져오기
 	import json
@@ -37,17 +32,10 @@ def sendEmail(request):
 		json_data = json.load(f)
 	email = json_data['email']
 	password = json_data['password']
-	# smtp using
-	server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-	server.login(email, password)
 	
-	msg = MIMEMultipart('alternative')
-	msg['Subject'] = inputTitle
-	msg['From'] = email
-	msg['To'] = inputReceiver
-	mail_html = MIMEText(mail_html, 'html')
-	msg.attach(mail_html)
-	print(msg['To'], type(msg['To']))
-	server.sendmail(msg['From'], msg['To'].split(','), msg.as_string())
-	server.quit()
+	# django send_mail 라이브러리 사용
+	msg = EmailMessage(subject = inputTitle, body=msg_html, from_email=email, bcc=inputReceiver.split(','))
+	msg.content_subtype='html'
+	msg.send()
+
 	return HttpResponseRedirect(reverse('index'))
