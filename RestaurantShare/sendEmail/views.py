@@ -28,7 +28,9 @@ def sendEmail(request):
 		mail_html += '<h4>* 장소 키워드</h4>' + '<p>'+restaurant.restaurant_keyword +'</p>'
 		mail_html += '<br>'
 		mail_html += '</body></html>'
-		print(mail_html)
-		return HttpResponseRedirect(reverse('index'))
+	print(mail_html)
+	# smtp using
+	server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+	server.login('2020220044@sdu.ac.kr', 'lsm4135943!')
 	
 	return HttpResponseRedirect(reverse('index'))
