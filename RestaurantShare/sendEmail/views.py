@@ -6,6 +6,7 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 from shareRes.models import *
 
+
 # Create your views here.
 def sendEmail(request):
 	checked_res_list = request.POST.getlist('checks') # checks라는 이름을 가진 태그의 값을 다 가져옴
@@ -29,8 +30,24 @@ def sendEmail(request):
 		mail_html += '<br>'
 		mail_html += '</body></html>'
 	print(mail_html)
+	
+	# json 파일 읽어서 아이디 비밀번호 가져오기
+	import json
+	with open('/Users/iseongmin/workspaces/RestaurantShare-with-Django/RestaurantShare/sendEmail/email.json', 'r') as f:
+		json_data = json.load(f)
+	email = json_data['email']
+	password = json_data['password']
 	# smtp using
 	server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-	server.login('2020220044@sdu.ac.kr', 'lsm4135943!')
+	server.login(email, password)
 	
+	msg = MIMEMultipart('alternative')
+	msg['Subject'] = inputTitle
+	msg['From'] = email
+	msg['To'] = inputReceiver
+	mail_html = MIMEText(mail_html, 'html')
+	msg.attach(mail_html)
+	print(msg['To'], type(msg['To']))
+	server.sendmail(msg['From'], msg['To'].split(','), msg.as_string())
+	server.quit()
 	return HttpResponseRedirect(reverse('index'))
